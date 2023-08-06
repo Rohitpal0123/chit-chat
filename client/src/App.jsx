@@ -2,8 +2,8 @@ import Register from "./Register";
 import axios from "axios";
 
 function App() {
-  axios.default.baseURL = "http://localhost:4000";
-  axios.default.withCredentials = true;
+  axios.defaults.baseURL = "http://192.168.0.174:4000";
+  axios.defaults.withCredentials = true;
 
   return (
     <>

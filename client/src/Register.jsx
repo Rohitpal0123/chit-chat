@@ -6,7 +6,10 @@ const Register = () => {
   const [password, setPassword] = useState("");
   async function register(event) {
     event.preventDefault();
-    await axios.post("/register", { username, password });
+    await axios.post("http://192.168.0.174:4000/register", {
+      username,
+      password
+    });
   }
 
   return (
