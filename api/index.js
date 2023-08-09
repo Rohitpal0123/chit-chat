@@ -1,6 +1,7 @@
 //import = require
 const express = require("express");
 const mongoose = require("mongoose");
+const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
 const User = require("./models/User");
 const cors = require("cors");
@@ -9,6 +10,7 @@ require("dotenv").config();
 //Root function
 const app = express();
 app.use(express.json());
+app.use(cookieParser());
 app.use(
   cors({
     credentials: true,
@@ -31,20 +33,48 @@ app.get("/test", (req, res) => {
   res.json(`Test is working and jwtSecert is ${jwtSecret}`);
 });
 
+app.get("/profile", (req, res) => {
+  const token = req.cookies?.token;
+  if (token) {
+    jwt.verify(token, jwtSecret, {}, (err, userData) => {
+      if (err) throw err;
+      res.json(userData);
+    });
+  } else {
+    res.status(401).json("no token");
+  }
+});
+
 //POST api to register User via login credential using npm package "JWT"
 app.post("/register", async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    const createdUser = await User.create({ username, password });
+    const checkUsername = await User.findOne({ username: username });
+    console.log("checkusername::", checkUsername);
+    if (checkUsername) throw "user already exists";
 
-    jwt.sign({ UserId: createdUser._id }, jwtSecret, {}, (err, token) => {
-      if (err) throw err;
-      res.cookie("token", token).status(201).json("ok");
-    });
+    const createdUser = await User.create({ username, password });
+    console.log("user has been created");
+
+    jwt.sign(
+      { UserId: createdUser._id, username },
+      jwtSecret,
+      {},
+      (err, token) => {
+        if (err) throw err;
+        res
+          .cookie("token", token, { sameSite: "none", secure: true })
+          .status(201)
+          .json({
+            id: createdUser._id
+          });
+      }
+    );
   } catch (err) {
+    console.log(err);
     if (err) throw err;
-    res.status(500).json("error");
+    res.status(404).send("error");
   }
 });
 
