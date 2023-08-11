@@ -5,6 +5,7 @@ const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
 const User = require("./models/User");
 const cors = require("cors");
+const bcrypt = require("bcryptjs");
 require("dotenv").config();
 
 //Root function
@@ -21,6 +22,7 @@ app.use(
 //jwt(json wen token) used for secure transaction of data between two parties
 mongoose.connect(process.env.MONGO_URL);
 const jwtSecret = process.env.JWT_SECRET;
+const bcryptSalt = bcrypt.genSaltSync(10);
 
 const connection = mongoose.connection;
 
@@ -45,6 +47,26 @@ app.get("/profile", (req, res) => {
   }
 });
 
+app.post("/login", async (req, res) => {
+  const { username, password } = req.body;
+  const foundUser = await User.findOne({ username });
+  if (foundUser) {
+    const passOk = bcrypt.compareSync(password, foundUser.password);
+    if (passOk) {
+      jwt.sign(
+        { UserId: foundUser._id, username },
+        jwtSecret,
+        {},
+        (err, token) => {
+          res.cookie("token", token, { sameSite: "none", secure: true }).json({
+            id: foundUser._id
+          });
+        }
+      );
+    }
+  }
+});
+
 //POST api to register User via login credential using npm package "JWT"
 app.post("/register", async (req, res) => {
   const { username, password } = req.body;
@@ -54,7 +76,11 @@ app.post("/register", async (req, res) => {
     console.log("checkusername::", checkUsername);
     if (checkUsername) throw "user already exists";
 
-    const createdUser = await User.create({ username, password });
+    const hashedPassword = bcrypt.hashSync(password, bcryptSalt);
+    const createdUser = await User.create({
+      username: username,
+      password: hashedPassword
+    });
     console.log("user has been created");
 
     jwt.sign(

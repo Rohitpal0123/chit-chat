@@ -1,6 +1,6 @@
 import { useContext } from "react";
-import Register from "./src/Register";
 import { UserContext } from "./src/UserContext";
+import RegisterAndLoginForm from "./src/RegisterAndLoginForm";
 
 const Routes = () => {
   const { username, id } = useContext(UserContext);
@@ -9,7 +9,7 @@ const Routes = () => {
     return "logged in" + username;
   }
 
-  return <Register />;
+  return <RegisterAndLoginForm />;
 };
 
 export default Routes;
