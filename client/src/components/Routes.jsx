@@ -1,6 +1,6 @@
 import { useContext } from "react";
-import { UserContext } from "./src/UserContext";
-import RegisterAndLoginForm from "./src/RegisterAndLoginForm";
+import { UserContext } from "./UserContext";
+import RegisterAndLoginForm from "./RegisterAndLoginForm";
 
 const Routes = () => {
   const { username, id } = useContext(UserContext);
